@@ -3,6 +3,27 @@ export const cardScale = {
   big: 1
 }
 
+export const drawScale = {
+  small: 1,
+  big: 0.8
+}
+
+export const drawPos = {
+  small: {
+    x: 0.80,
+    y: 0.92
+  },
+  big: {
+    x: 0.9,
+    y: 0.9
+  },
+}
+
+export const heldPos = {
+  small: 0.4,
+  big: 0.29
+}
+
 export const cardPositions = [
   {
     small: .12,

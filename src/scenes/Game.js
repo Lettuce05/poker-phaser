@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import cardsDef from '@/assets/cards.json';
-import { cardScale, cardPositions } from '@/display.js';
+import drawUrl from '@/assets/draw.png';
+import heldUrl from '@/assets/held.png';
+import { cardScale, cardPositions, drawScale, drawPos, heldPos } from '@/display.js';
+import Deck from '@/deck.js';
+import { cards, cardBack } from '@/cards.js';
 
 export default class Game extends Phaser.Scene {
   constructor() {
@@ -10,6 +14,10 @@ export default class Game extends Phaser.Scene {
   displaySize;
   FLIP_SPEED = 200;
   FLIP_ZOOM = 1.2;
+  drawCount = -1;
+  deck;
+  credits;
+  unheldCards;
 
   init() {
     if (window.innerWidth < 1000) {
@@ -17,21 +25,40 @@ export default class Game extends Phaser.Scene {
     } else {
       this.displaySize = 'big';
     }
+
+    this.deck = new Deck(cards);
+    this.deck.shuffle();
+
+    this.credits = 30;
+    this.unheldCards = [0, 1, 2, 3, 4];
   }
 
   preload() {
     this.load.multiatlas('cards', cardsDef, 'src/assets');
+    this.load.image('draw', drawUrl);
+    this.load.image('held', heldUrl);
     this.cardObjects = [];
+    this.heldObjects = [];
   }
 
   create() {
-
+    // add cards to scene
     for (let i = 0; i < 5; i++) {
-      let card = this.add.image(this.scale.width * cardPositions[i][this.displaySize], this.scale.height * 0.5, 'cards', 'S7.png').setScale(cardScale[this.displaySize]);
+      let card = this.add.image(this.scale.width * cardPositions[i][this.displaySize], this.scale.height * 0.5, 'cards', 'back.png').setScale(cardScale[this.displaySize]);
+
       card.cardId = i;
       card.isFlipping = false;
+      card.setInteractive();
       this.cardObjects.push(card);
+
+      let heldText = this.add.image(this.scale.width * cardPositions[i][this.displaySize], this.scale.height * heldPos[this.displaySize], 'held').setScale(cardScale[this.displaySize]);
+      heldText.setAlpha(0);
+      this.heldObjects.push(heldText);
     }
+
+    // add draw btn to screen
+    this.drawBtn = this.add.image(this.scale.width * drawPos[this.displaySize].x, this.scale.height * drawPos[this.displaySize].y, 'draw').setScale(drawScale[this.displaySize]);
+    this.drawBtn.setInteractive();
 
 
     // this.flipCards(this.cardObjects, 0, ['H3.png', 'HA.png', 'D2.png', 'C8.png', 'SJ.png'], 0);
@@ -47,11 +74,61 @@ export default class Game extends Phaser.Scene {
     // this.flipCards(this.cardObjects[0], 0, ['H3.png'], 0);
 
 
-    // this.input.on('gameobjectdown', this.handleClick);
+    this.input.on('gameobjectdown', this.handleClick);
   }
 
-  update() {
+  handleClick(pointer, object) {
+    if (object.texture.key === 'draw') {
+      this.scene.handleDraw();
+    } else if (object.texture.key === 'cards') {
+      this.scene.handleHeld(object);
+    }
+  }
 
+  handleHeld(card) {
+    if (this.drawCount !== 1) {
+      return;
+    }
+    let newUnHeld = Array.from(this.unheldCards);
+    if (newUnHeld.includes(card.cardId)) {
+      newUnHeld = newUnHeld.filter(cardId => cardId !== card.cardId);
+      this.heldObjects[card.cardId].setAlpha(1);
+    } else {
+      newUnHeld.push(card.cardId);
+      this.heldObjects[card.cardId].setAlpha(0);
+    }
+    this.unheldCards = newUnHeld;
+  }
+
+  handleDraw() {
+    // initial draw
+    if (this.drawCount === -1) {
+      if (this.cardObjects.every(card => !card.isFlipping)) {
+        this.cardObjects.forEach(card => {
+          card.isFlipping = true;
+        });
+        let frames = this.deck.draw(this.cardObjects.length);
+        frames = frames.map((card) => card.img);
+        this.flipCards(this.cardObjects, 1, frames, 0);
+        this.drawCount = 1;
+      } else {
+        return;
+      }
+
+    } else if (this.drawCount === 1) {
+      let unheldCardObjects = this.unheldCards.map((cardId) => this.cardObjects[cardId]);
+      if (unheldCardObjects.every(card => !card.isFlipping)) {
+        unheldCardObjects.forEach(card => {
+          card.isFlipping = true;
+        });
+        let frames = this.deck.draw(unheldCardObjects.length);
+        frames = frames.map((card) => card.img);
+        this.flipCards(unheldCardObjects, 0, frames, 0);
+        this.drawCount = 0;
+      } else {
+        return;
+      }
+    }
   }
 
   // check if card is flipping and set to true before calling
@@ -101,8 +178,6 @@ export default class Game extends Phaser.Scene {
 
       }
     })
-
-
   }
 
 }
