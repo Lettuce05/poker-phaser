@@ -37,7 +37,9 @@ export default class Game extends Phaser.Scene {
     }
 
 
-    this.flipCard(this.cardObjects, 0, `HA.png`, 0);
+    // this.flipCard(this.cardObjects, 0, ['H3.png', 'HA.png', 'D2.png', 'C8.png', 'SJ.png'], 0);
+    let testCards = [this.cardObjects[0], this.cardObjects[2], this.cardObjects[4]]
+    this.flipCards(testCards, 0, ['H3.png', 'HA.png', 'D2.png'], 0);
 
 
     // this.input.on('gameobjectdown', this.handleClick);
@@ -48,22 +50,26 @@ export default class Game extends Phaser.Scene {
   }
 
   // check if card is flipping and set to true before calling
-  flipCard(gameObject, flipNum, frame, delay) {
+  flipCards(gameObjects, flipNum, frames, delay) {
     // first tween: we raise and flip the card
     this.tweens.add({
-      targets: gameObject,
+      targets: gameObjects,
       duration: this.FLIP_SPEED / 2,
       delay: delay,
       scaleX: 0,
       scaleY: this.FLIP_ZOOM * cardScale[this.displaySize],
       ease: 'Linear',
-      onCompleteParams: [flipNum, frame],
-      onComplete: function(tween, targets, flipNum, frame) {
-        let card = targets[0];
+      onCompleteParams: [flipNum, frames],
+      onComplete: function(tween, targets, flipNum, frames) {
         if (flipNum > 0) {
-          card.setFrame(frame);
+          targets.forEach((card, index) => {
+            card.setFrame(frames[index]);
+          })
+
         } else {
-          card.setFrame('back.png');
+          targets.forEach((card) => {
+            card.setFrame('back.png');
+          })
         }
         this.parent.scene.backFlipTween.play();
 
@@ -72,19 +78,20 @@ export default class Game extends Phaser.Scene {
 
 
     this.backFlipTween = this.tweens.add({
-      targets: gameObject,
+      targets: gameObjects,
       duration: this.FLIP_SPEED / 2,
       scaleX: cardScale[this.displaySize],
       scaleY: cardScale[this.displaySize],
       paused: true,
       ease: 'Linear',
-      onCompleteParams: [flipNum, frame],
-      onComplete: function(tween, targets, flipNum, frame) {
-        let card = targets[0];
+      onCompleteParams: [flipNum, frames],
+      onComplete: function(tween, targets, flipNum, frames) {
         if (flipNum > 0) {
-          card.isFlipping = false;
+          targets.forEach(card => {
+            card.isFlipping = false;
+          })
         } else {
-          this.parent.scene.flipCard(card, 1, frame, 200)
+          this.parent.scene.flipCards(targets, 1, frames, 200)
         }
 
       }
