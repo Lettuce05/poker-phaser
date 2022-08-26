@@ -12,9 +12,6 @@ export default class Game extends Phaser.Scene {
   FLIP_ZOOM = 1.2;
 
   init() {
-    // set background color
-    this.mainCamera = this.cameras.add(0, 0);
-    this.mainCamera.setBackgroundColor('#3D7AD6');
     if (window.innerWidth < 1000) {
       this.displaySize = 'small';
     } else {
@@ -37,9 +34,17 @@ export default class Game extends Phaser.Scene {
     }
 
 
-    // this.flipCard(this.cardObjects, 0, ['H3.png', 'HA.png', 'D2.png', 'C8.png', 'SJ.png'], 0);
-    let testCards = [this.cardObjects[0], this.cardObjects[2], this.cardObjects[4]]
-    this.flipCards(testCards, 0, ['H3.png', 'HA.png', 'D2.png'], 0);
+    // this.flipCards(this.cardObjects, 0, ['H3.png', 'HA.png', 'D2.png', 'C8.png', 'SJ.png'], 0);
+    let testCards = [this.cardObjects[0], this.cardObjects[2], this.cardObjects[4]];
+    // NOTE: check if cards are flipping and set to true before flipping
+    // if (testCards.every(card => !card.isFlipping)) {
+    //   testCards.forEach(card => {
+    //     card.isFlipping = true;
+    //   })
+    //   this.flipCards(testCards, 0, ['H3.png', 'HA.png', 'D2.png'], 0);
+    // }
+
+    // this.flipCards(this.cardObjects[0], 0, ['H3.png'], 0);
 
 
     // this.input.on('gameobjectdown', this.handleClick);

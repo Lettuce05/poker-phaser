@@ -14,6 +14,7 @@ if (window.innerWidth < 1000) {
 
 export default new Phaser.Game({
   type: Phaser.AUTO,
+  backgroundColor: '#3D7AD6',
   scale: {
     parent: 'gameContainer',
     mode: Phaser.Scale.FIT,
@@ -21,11 +22,5 @@ export default new Phaser.Game({
     height: height,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
-  scene: [Game],
-  physics: {
-    default: "arcade",
-    arcade: {
-      debug: true
-    }
-  }
+  scene: [Game]
 })
