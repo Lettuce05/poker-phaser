@@ -5,6 +5,7 @@ import heldUrl from '@/assets/held.png';
 import { cardScale, cardPositions, drawScale, drawPos, heldPos } from '@/display.js';
 import Deck from '@/deck.js';
 import { cards, cardBack } from '@/cards.js';
+import { isRoyalFlush } from '@/poker.js';
 
 export default class Game extends Phaser.Scene {
   constructor() {
@@ -107,10 +108,11 @@ export default class Game extends Phaser.Scene {
         this.cardObjects.forEach(card => {
           card.isFlipping = true;
         });
+        this.credits = this.credits - 1;
         let frames = this.deck.draw(this.cardObjects.length);
         frames = frames.map((card) => card.img);
-        this.flipCards(this.cardObjects, 1, frames, 0);
         this.drawCount = 1;
+        this.flipCards(this.cardObjects, 1, frames, 0);
       } else {
         return;
       }
@@ -123,12 +125,35 @@ export default class Game extends Phaser.Scene {
         });
         let frames = this.deck.draw(unheldCardObjects.length);
         frames = frames.map((card) => card.img);
+        this.drawCount = 2;
         this.flipCards(unheldCardObjects, 0, frames, 0);
-        this.drawCount = 0;
+        let heldFrames = this.cardObjects.map((card) => {
+          if (!this.unheldCards.includes(card.cardId)) {
+            return card.frame.name;
+          }
+        });
+        heldFrames = heldFrames.filter(frame => {
+          if (frame) {
+            return true;
+          }
+          return false;
+        });
+        this.checkWin(heldFrames.concat(frames));
       } else {
         return;
       }
     }
+  }
+
+  checkWin(frames) {
+    let finalCards = Array.from(cards);
+    finalCards = finalCards.filter(card => frames.includes(card.img));
+
+    if (isRoyalFlush(finalCards)) {
+      console.log("hand is royal flush!!!");
+    }
+
+    this.drawCount = 0;
   }
 
   // check if card is flipping and set to true before calling
